@@ -149,7 +149,6 @@ def extract_full_features(
     sr: int = 16_000,
     n_mfcc: int = 13,
     use_deltas: bool = True,
-    as_vector: bool = True,
 ) -> np.ndarray:
     """
     Pipeline completo de extracción de características.
@@ -172,10 +171,7 @@ def extract_full_features(
     else:
         features = mfcc
 
-    if as_vector:
-        return features_to_vector(features)
-    else:
-        return features  # (n_features, T) para modelos secuenciales
+    return features_to_vector(features), features.T 
 
 
 # ─── Demo rápida ─────────────────────────────────────────────────────────────

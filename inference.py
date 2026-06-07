@@ -17,6 +17,7 @@ def recognize(
     sr: int = 16_000,
     n_mfcc: int = 13,
     use_deltas: bool = True,
+    use_vector: bool = True,
 ) -> str:
     """
     Reconoce una palabra desde un archivo de audio o señal numpy.
@@ -43,13 +44,17 @@ def recognize(
         raise TypeError("audio_input debe ser str (ruta) o np.ndarray")
 
     # 2. Extraer características
-    features = extract_full_features(
-        signal, sr=sr, n_mfcc=n_mfcc, use_deltas=use_deltas, as_vector=True
+    features_vector, features_matrix = extract_full_features(
+        signal, sr=sr, n_mfcc=n_mfcc, use_deltas=use_deltas
     )
 
     # 3. Predecir
+    if use_vector:
+        features = features_vector
+    else:
+        features = features_matrix
     word, confidence = model.predict_single(features)
-    return word
+    return word, confidence 
 
 
 def recognize_with_confidence(

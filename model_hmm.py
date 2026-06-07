@@ -63,12 +63,18 @@ class HMMRecognizer:
 
         for cls in classes:
             cls_mask = y == cls
-            X_cls = X[cls_mask]
+            X_cls = [
+                seq
+                for seq, label in zip(X, y)
+                if label == cls
+            ]
 
-            # hmmlearn espera secuencias concatenadas con lengths
-            # Aquí cada muestra es un "frame" de observación
-            sequences = X_cls                # (n_samples, n_features)
-            lengths   = [1] * len(X_cls)    # cada muestra = secuencia de 1
+            sequences = np.vstack(X_cls)
+
+            lengths = [len(seq) for seq in X_cls]
+
+            print("X_cls shape:", X_cls[0].shape)
+            print("lengths[:10]:", lengths[:10])
 
             model = hmm.GaussianHMM(
                 n_components=self.n_components,
@@ -97,12 +103,11 @@ class HMMRecognizer:
             Array de etiquetas predichas (n_samples,)
         """
         predictions = []
-        for x in X:
-            obs = x.reshape(1, -1)  # (1, n_features)
+        for sequence in X:
             scores = {}
             for cls, model in self.models.items():
                 try:
-                    score = model.score(obs, [1])
+                    score = model.score(sequence)
                 except Exception:
                     score = -np.inf
                 scores[cls] = score
@@ -119,16 +124,17 @@ class HMMRecognizer:
         Returns:
             (nombre_clase, log_verosimilitud)
         """
-        obs = x.reshape(1, -1)
         best_cls, best_score = None, -np.inf
         for cls, model in self.models.items():
             try:
-                score = model.score(obs, [1])
+                score = model.score(x)
             except Exception:
                 score = -np.inf
             if score > best_score:
                 best_score = score
-                best_cls = cls
+                best_cls = int(cls)
+        if best_cls is None:
+            return "Desconocido", best_score
         return self.labels[best_cls], best_score
 
     def save(self, path: str) -> None:

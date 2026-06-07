@@ -109,7 +109,8 @@ def evaluate_model(
     acc = accuracy_score(y_test, y_pred)
     wer = compute_wer(refs, hyps)
     cm  = confusion_matrix(y_test, y_pred)
-    rep = classification_report(y_test, y_pred, target_names=labels)
+    rep_str = classification_report(y_test, y_pred, target_names=labels)
+    rep_dict = classification_report(y_test, y_pred, target_names=labels, output_dict=True)
 
     if verbose:
         print(f"\n{'─'*50}")
@@ -117,7 +118,7 @@ def evaluate_model(
         print(f"{'─'*50}")
         print(f"  Accuracy : {acc:.4f}  ({acc:.2%})")
         print(f"  WER      : {wer:.4f}  ({wer:.2%})")
-        print(f"\n{rep}")
+        print(f"\n{rep_str}")
 
     # ── Gráficas ──────────────────────────────────────────────────────────
     if save_path:
@@ -129,10 +130,41 @@ def evaluate_model(
         "name":             name,
         "accuracy":         acc,
         "wer":              wer,
-        "report":           rep,
+        "report":           rep_dict,
         "confusion_matrix": cm,
         "y_pred":           y_pred,
     }
+
+
+def plot_model(
+    model_metrics: dict,
+    save_path: str = None,
+) -> None:
+
+    report = model_metrics["report"]
+
+    labels = []
+    f1_scores = []
+
+    for label, metrics in report.items():
+        if label in ("accuracy", "macro avg", "weighted avg"):
+            continue
+
+        labels.append(label)
+        f1_scores.append(metrics["f1-score"])
+
+    plt.figure(figsize=(12, 6))
+    plt.bar(labels, f1_scores)
+
+    plt.title(f"F1-Score por clase - {model_metrics['name']}")
+    plt.xlabel("Clase")
+    plt.ylabel("F1-Score")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    if save_path:
+        f_name = f"f1_scores_{model_metrics['name'].lower().replace(' ', '_')}.png"
+        plt.savefig(os.path.join(save_path, f_name), dpi=300, bbox_inches="tight")
 
 
 def compare_models(
@@ -157,7 +189,6 @@ def compare_models(
 
     if save_path:
         _plot_comparison(metrics_dicts, save_path)
-
 
 # ──────────────────────────────────────────────────────────────
 # Funciones de graficación (internas)

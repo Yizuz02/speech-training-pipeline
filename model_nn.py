@@ -185,7 +185,7 @@ class NeuralRecognizer:
         ).to(self.device)
 
         optimizer = Adam(self.model.parameters(), lr=self.lr, weight_decay=1e-4)
-        scheduler = ReduceLROnPlateau(optimizer, patience=5, factor=0.5, verbose=False)
+        scheduler = ReduceLROnPlateau(optimizer, patience=5, factor=0.5)
         criterion = nn.CrossEntropyLoss()
 
         best_val_loss = np.inf

@@ -31,7 +31,6 @@ def load_dataset(
     sr: int = 16_000,
     n_mfcc: int = 13,
     use_deltas: bool = True,
-    as_vector: bool = True,
     max_per_class: Optional[int] = None,
     verbose: bool = True,
 ) -> tuple[list, list[int], list[str]]:
@@ -69,14 +68,15 @@ def load_dataset(
         raise ValueError(f"No se encontraron subcarpetas en '{data_dir}'.")
 
     label_to_idx = {label: idx for idx, label in enumerate(labels)}
-    X, y = [], []
+    X_vector, y_vector = [], []
+    X_matrix, y_matrix = [], []
     errors = 0
 
     for label in labels:
         class_dir = os.path.join(data_dir, label)
         files = [
             f for f in os.listdir(class_dir)
-            if f.lower().endswith((".wav", ".flac", ".mp3", ".ogg"))
+            if f.lower().endswith((".wav", ".flac", ".mp3", ".ogg", ".opus"))
         ]
 
         if max_per_class:
@@ -90,15 +90,16 @@ def load_dataset(
             fpath = os.path.join(class_dir, fname)
             try:
                 signal = preprocess_audio(fpath, sr=sr)
-                features = extract_full_features(
+                features_vector, features_matrix = extract_full_features(
                     signal,
                     sr=sr,
                     n_mfcc=n_mfcc,
-                    use_deltas=use_deltas,
-                    as_vector=as_vector,
+                    use_deltas=use_deltas
                 )
-                X.append(features)
-                y.append(label_to_idx[label])
+                X_vector.append(features_vector)
+                y_vector.append(label_to_idx[label])
+                X_matrix.append(features_matrix)
+                y_matrix.append(label_to_idx[label])
             except Exception as e:
                 errors += 1
                 if verbose:
@@ -107,7 +108,7 @@ def load_dataset(
     if verbose and errors > 0:
         print(f"  [!] {errors} archivos no pudieron cargarse.")
 
-    return X, y, labels
+    return X_vector, y_vector, X_matrix, y_matrix, labels
 
 
 def train_test_split_dataset(
@@ -149,6 +150,35 @@ def train_test_split_dataset(
         y[indices_train], y[indices_test],
     )
 
+def train_test_split_dataset_hmm(
+    X: list,
+    y: list[int],
+    test_size: float = 0.2,
+    seed: int = 42,
+):
+    random.seed(seed)
+    np.random.seed(seed)
+
+    y = np.array(y)
+
+    indices_train, indices_test = [], []
+
+    for cls in np.unique(y):
+        cls_indices = np.where(y == cls)[0].tolist()
+        random.shuffle(cls_indices)
+
+        n_test = max(1, int(len(cls_indices) * test_size))
+
+        indices_test.extend(cls_indices[:n_test])
+        indices_train.extend(cls_indices[n_test:])
+
+    X_train = [X[i] for i in indices_train]
+    X_test  = [X[i] for i in indices_test]
+
+    y_train = y[indices_train]
+    y_test  = y[indices_test]
+
+    return X_train, X_test, y_train, y_test
 
 def generate_dummy_dataset(
     data_dir: str = "data",
