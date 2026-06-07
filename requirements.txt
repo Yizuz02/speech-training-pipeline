@@ -1,0 +1,25 @@
+# ──────────────────────────────────────────────────────────
+# Sistema ASR - ESCOM IPN
+# Dependencias del proyecto
+# Instalar: pip install -r requirements.txt
+# ──────────────────────────────────────────────────────────
+
+# Procesamiento de audio
+librosa>=0.10.0
+soundfile>=0.12.0
+sounddevice>=0.4.6      # Solo para captura de micrófono (opcional)
+
+# Procesamiento numérico
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+hmmlearn>=0.3.0          # Modelos HMM/GMM
+
+# Deep Learning
+torch>=2.0.0             # Red neuronal (CPU o GPU)
+
+# Visualización y evaluación
+matplotlib>=3.7.0
+jiwer>=3.0.0             # WER alternativo más robusto (opcional)
