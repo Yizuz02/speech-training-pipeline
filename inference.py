@@ -86,6 +86,7 @@ def recognize_from_microphone(
     sr: int = 16_000,
     duration: float = 2.0,
     n_mfcc: int = 13,
+    use_vector: bool = True,
 ) -> str:
     """
     Captura audio del micrófono y lo reconoce.
@@ -116,7 +117,7 @@ def recognize_from_microphone(
     sd.wait()
     signal = recording.flatten()
 
-    return recognize(signal, model, sr=sr, n_mfcc=n_mfcc)
+    return recognize(signal, model, sr=sr, n_mfcc=n_mfcc, use_vector=use_vector)
 
 
 def batch_recognize(
@@ -158,6 +159,7 @@ if __name__ == "__main__":
 
     model_path = sys.argv[1]
     audio_arg  = sys.argv[2]
+    use_vector = True  
 
     # Cargar modelo
     if model_path.endswith(".pt"):
@@ -166,10 +168,11 @@ if __name__ == "__main__":
     else:
         from model_hmm import HMMRecognizer
         model = HMMRecognizer.load(model_path)
+        use_vector = False  
 
     # Inferencia
     if audio_arg == "mic":
-        word = recognize_from_microphone(model)
+        word = recognize_from_microphone(model, use_vector=use_vector)
     else:
         word = recognize(audio_arg, model)
 

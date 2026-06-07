@@ -22,10 +22,12 @@ N_MFCC        = 13              # Coeficientes MFCC
 DATA_DIR      = "data"          # Carpeta con audios organizados por carpeta/etiqueta
 RESULTS_DIR   = "results"
 EXAMPLE_DIR   = "examples"       # Audios de ejemplo para inferencia demo
+MODELS_DIR    = "models"         # Carpeta para guardar modelos entrenados
 TEST_SIZE     = 0.2             # 20% para prueba
 RANDOM_SEED   = 42
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
+os.makedirs(MODELS_DIR, exist_ok=True)
 
 
 def main():
@@ -54,15 +56,17 @@ def main():
 
     hmm_model = HMMRecognizer(n_components=5, n_iter=100)
     hmm_model.fit(X_train_hmm, y_train_hmm, labels)
+    hmm_model.save(os.path.join(MODELS_DIR, "hmm_model.pkl"))
     print("      HMM entrenado")
 
     nn_model = NeuralRecognizer(
-        input_dim=N_MFCC * 3,  
+        input_dim=N_MFCC * 3 * 2,  
         hidden_dim=128,
         output_dim=len(labels),
         epochs=50
     )
     nn_model.fit(X_train_nn, y_train_nn, labels=labels)
+    nn_model.save(os.path.join(MODELS_DIR, "nn_model.pt"))
     print("      Red Neuronal entrenada")
 
     # 4. EVALUAR

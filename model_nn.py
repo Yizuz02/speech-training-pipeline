@@ -307,7 +307,7 @@ class NeuralRecognizer:
     @classmethod
     def load(cls, path: str) -> "NeuralRecognizer":
         """Carga un modelo guardado."""
-        state = torch.load(path, map_location="cpu")
+        state = torch.load(path, map_location="cpu", weights_only=False)
         rec = cls(
             input_dim=state["input_dim"],
             hidden_dim=state["hidden_dim"],

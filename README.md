@@ -76,7 +76,8 @@ python dataset.py
 python inference.py models/hmm.pkl data/no/no_001.wav
 
 # Inferencia con micrófono
-python inference.py models/nn.pt mic
+python inference.py models/nn_model.pt mic
+python inference.py models/hmm_model.pkl mic
 ```
 
 ---
