@@ -7,6 +7,7 @@ Módulo 2: Extracción de Características Acústicas
 - Estadísticas resumen por vector de características
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
 import librosa
 
@@ -149,6 +150,7 @@ def extract_full_features(
     sr: int = 16_000,
     n_mfcc: int = 13,
     use_deltas: bool = True,
+    plot: bool = True
 ) -> np.ndarray:
     """
     Pipeline completo de extracción de características.
@@ -166,6 +168,13 @@ def extract_full_features(
     """
     mfcc = extract_mfcc(signal, sr=sr, n_mfcc=n_mfcc)
 
+    if plot:
+        save_signal_and_mfcc(
+            signal,
+            mfcc,
+            output_path="resultado_mfcc.png"
+        )
+
     if use_deltas:
         features = extract_delta(mfcc, order=2)
     else:
@@ -173,6 +182,58 @@ def extract_full_features(
 
     return features_to_vector(features), features.T 
 
+
+def save_signal_and_mfcc(
+    signal: np.ndarray,
+    mfcc: np.ndarray,
+    output_path: str = "mfcc_plot.png",
+    sr: int = 16000,
+    hop_length: int = 160,
+):
+    """
+    Guarda una gráfica con la señal de audio y sus MFCCs.
+
+    Args:
+        signal: Señal de audio.
+        mfcc: Matriz MFCC (n_mfcc, T).
+        output_path: Ruta del archivo PNG a generar.
+        sr: Sample rate.
+        hop_length: Hop usado para calcular los MFCC.
+    """
+    fig, axes = plt.subplots(
+        2,
+        1,
+        figsize=(12, 6),
+        gridspec_kw={"height_ratios": [1, 2]}
+    )
+
+    # Señal temporal
+    librosa.display.waveshow(
+        signal,
+        sr=sr,
+        ax=axes[0]
+    )
+    axes[0].set_title("Señal de Audio")
+    axes[0].set_ylabel("Amplitud")
+
+    # MFCC
+    img = librosa.display.specshow(
+        mfcc,
+        x_axis="time",
+        sr=sr,
+        hop_length=hop_length,
+        ax=axes[1]
+    )
+
+    axes[1].set_title("MFCC")
+    axes[1].set_ylabel("Coeficiente MFCC")
+    fig.colorbar(img, ax=axes[1], format="%+2.0f")
+
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+
+    print(f"Gráfica guardada en: {output_path}")
 
 # ─── Demo rápida ─────────────────────────────────────────────────────────────
 if __name__ == "__main__":

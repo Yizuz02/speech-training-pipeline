@@ -86,6 +86,7 @@ def load_dataset(
         if verbose:
             print(f"  Cargando clase '{label}': {len(files)} archivos")
 
+        save_plot = True
         for fname in files:
             fpath = os.path.join(class_dir, fname)
             try:
@@ -94,8 +95,10 @@ def load_dataset(
                     signal,
                     sr=sr,
                     n_mfcc=n_mfcc,
-                    use_deltas=use_deltas
+                    use_deltas=use_deltas,
+                    plot=save_plot
                 )
+                save_plot = False
                 X_vector.append(features_vector)
                 y_vector.append(label_to_idx[label])
                 X_matrix.append(features_matrix)
